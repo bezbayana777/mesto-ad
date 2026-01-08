@@ -9,8 +9,6 @@
 import { createCardElement, deleteCard, likeCard } from "./components/card.js";
 import { openModalWindow, closeModalWindow, setCloseModalWindowEventListeners } from "./components/modal.js";
 import { getUserInfo, getCardList, setAvatar, setUserInfo, addNewCard, deleteCardRequest, changeLikeCardStatus } from "./components/api.js";
-
-
 import { enableValidation, clearValidation } from './components/validation.js';
 
 
@@ -40,6 +38,11 @@ const avatarFormModalWindow = document.querySelector(".popup_type_edit-avatar");
 const avatarForm = avatarFormModalWindow.querySelector(".popup__form");
 const avatarInput = avatarForm.querySelector(".popup__input");
 
+const cardInfoModalWindow = document.querySelector(".popup_type_info")
+const cardInfoModalInfoList = cardInfoModalWindow.querySelector(".popup__info");
+
+console.log(cardInfoModalInfoList);
+
 let currentUserId = null;
 
 const handlePreviewPicture = ({ name, link }) => {
@@ -52,8 +55,8 @@ const handlePreviewPicture = ({ name, link }) => {
 const handleProfileFormSubmit = (evt) => {
   evt.preventDefault();
 
-  const submitButton = evt.submitter
-  const initialText = submitButton.textContent
+  const submitButton = evt.submitter;
+  const initialText = submitButton.textContent;
 
   submitButton.textContent = "Сохранение..."
 
@@ -62,22 +65,22 @@ const handleProfileFormSubmit = (evt) => {
     about: profileDescriptionInput.value,
   })
     .then((userData) => {
-      profileTitle.textContent = userData.name
-      profileDescription.textContent = userData.about
+      profileTitle.textContent = userData.name;
+      profileDescription.textContent = userData.about;
       closeModalWindow(profileFormModalWindow)
     })
     .catch((err) => {
       console.log(err)
     })
     .finally(() => {
-      submitButton.textContent = originalText
+      submitButton.textContent = initialText
     })
 };
 
 const handleAvatarFromSubmit = (evt) => {
   evt.preventDefault();
  const submitButton = evt.submitter;
-  const originalText = submitButton.textContent;
+  const initialText = submitButton.textContent;
   
   submitButton.textContent = "Сохранение...";
   
@@ -85,20 +88,19 @@ const handleAvatarFromSubmit = (evt) => {
     .then((userData) => {
       profileAvatar.style.backgroundImage = `url(${userData.avatar})`;
       closeModalWindow(avatarFormModalWindow);
-      avatarForm.reset();
     })
     .catch((err) => {
       console.log(err);
     })
     .finally(() => {
-      submitButton.textContent = originalText;
+      submitButton.textContent = initialText;
     });
 };
 
 const handleCardFormSubmit = (evt) => {
   evt.preventDefault();
   const submitButton = evt.submitter;
-  const originalText = submitButton.textContent;
+  const initialText = submitButton.textContent;
   
   submitButton.textContent = "Создание...";
   
@@ -115,24 +117,24 @@ const handleCardFormSubmit = (evt) => {
             onPreviewPicture: handlePreviewPicture,
             onLikeIcon: handleLikeCard,
             onDeleteCard: handleDeleteCard,
+            onInfoClick: handleInfoClick
           }
         )
       );
       closeModalWindow(cardFormModalWindow);
-      cardForm.reset();
     })
     .catch((err) => {
       console.log(err);
     })
     .finally(() => {
-      submitButton.textContent = originalText;
+      submitButton.textContent = initialText;
     });
 };
 
 const handleLikeCard = (cardId, likeButton, likeCountElement, isLiked) => {
   changeLikeCardStatus(cardId, isLiked)
     .then((cardData) => {
-      likeButton.classList.toggle("card__like-button_is-active");
+      likeCard(likeButton);
       likeCountElement.textContent = cardData.likes.length;
     })
     .catch((err) => {
@@ -143,13 +145,78 @@ const handleLikeCard = (cardId, likeButton, likeCountElement, isLiked) => {
 const handleDeleteCard = (cardId, cardElement) => {
   deleteCardRequest(cardId)
     .then(() => {
-      cardElement.remove();
+      deleteCard(cardElement)
     })
     .catch((err) => {
       console.log(err);
     });
 };
 
+const formatDate = (date) =>
+  date.toLocaleDateString("ru-RU", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+  
+const createInfoString = (term, description) => {
+  const template = document.getElementById('popup-info-definition-template');
+  const infoElement = template.content.querySelector('.popup__info-item').cloneNode(true);
+  infoElement.querySelector('.popup__info-term').textContent = term;
+  infoElement.querySelector('.popup__info-description').textContent = description;
+  return infoElement;
+};
+
+
+const createUserPreview = (user) => {
+  const template = document.getElementById('popup-info-user-preview-template');
+  const userElement = template.content.querySelector('.popup__list-item').cloneNode(true);
+  
+  userElement.textContent = user.name;
+  
+  return userElement;
+};
+
+const handleInfoClick = (cardId) => {
+  const infoList = cardInfoModalWindow.querySelector('.popup__info');
+  const userList = cardInfoModalWindow.querySelector('.popup__list');
+  const textElement = cardInfoModalWindow.querySelector('.popup__text');
+  
+  infoList.innerHTML = '';
+  userList.innerHTML = '';
+  
+  getCardList()
+    .then((cards) => {
+      const cardData = cards.find(card => card._id === cardId);
+      
+      infoList.append(
+        createInfoString("Описание:", cardData.name) 
+      );
+      
+      infoList.append(
+        createInfoString("Дата создания:", formatDate(new Date(cardData.createdAt)))
+      );
+      
+      infoList.append(
+        createInfoString("Владелец:", cardData.owner.name || cardData.owner._id)
+      );
+      
+      infoList.append(
+        createInfoString("Количество лайков:", cardData.likes.length.toString())
+      );
+      
+      textElement.textContent = "Лайкнули:";
+      
+      cardData.likes.forEach(user => {
+        userList.append(createUserPreview(user));
+      });
+      
+      openModalWindow(cardInfoModalWindow);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
 
 profileForm.addEventListener("submit", handleProfileFormSubmit);
 cardForm.addEventListener("submit", handleCardFormSubmit);
@@ -202,6 +269,7 @@ Promise.all([getCardList(), getUserInfo()])
             onPreviewPicture: handlePreviewPicture,
             onLikeIcon: handleLikeCard,
             onDeleteCard: handleDeleteCard,
+            onInfoClick: handleInfoClick
           }
         )
       );
