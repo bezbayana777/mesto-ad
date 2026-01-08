@@ -41,6 +41,10 @@ const avatarInput = avatarForm.querySelector(".popup__input");
 const cardInfoModalWindow = document.querySelector(".popup_type_info")
 const cardInfoModalInfoList = cardInfoModalWindow.querySelector(".popup__info");
 
+const deleteCardModal = document.querySelector(".popup_type_remove-card");
+const deleteCardButton = deleteCardModal.querySelector(".popup__button");
+
+
 console.log(cardInfoModalInfoList);
 
 let currentUserId = null;
@@ -143,13 +147,19 @@ const handleLikeCard = (cardId, likeButton, likeCountElement, isLiked) => {
 };
 
 const handleDeleteCard = (cardId, cardElement) => {
-  deleteCardRequest(cardId)
-    .then(() => {
-      deleteCard(cardElement)
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+  openModalWindow(deleteCardModal);
+  deleteCardButton.addEventListener("click", () => {
+    deleteCardRequest(cardId)
+      .then(() => {
+        deleteCard(cardElement)
+      })
+      .catch((err) => {
+        console.log(err);
+      })
+      .finally(() => {
+        closeModalWindow(deleteCardModal);
+      });
+  })
 };
 
 const formatDate = (date) =>
@@ -223,9 +233,9 @@ cardForm.addEventListener("submit", handleCardFormSubmit);
 avatarForm.addEventListener("submit", handleAvatarFromSubmit);
 
 openProfileFormButton.addEventListener("click", () => {
+  clearValidation(profileForm);
   profileTitleInput.value = profileTitle.textContent;
   profileDescriptionInput.value = profileDescription.textContent;
-  clearValidation(profileForm);
   openModalWindow(profileFormModalWindow);
 });
 
