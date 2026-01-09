@@ -40,9 +40,14 @@ const avatarInput = avatarForm.querySelector(".popup__input");
 
 const cardInfoModalWindow = document.querySelector(".popup_type_info")
 const cardInfoModalInfoList = cardInfoModalWindow.querySelector(".popup__info");
+const popupTitle = cardInfoModalWindow.querySelector(".popup__title");
 
 const deleteCardModal = document.querySelector(".popup_type_remove-card");
 const deleteCardButton = deleteCardModal.querySelector(".popup__button");
+
+const logoImage = document.querySelector(".header__logo");
+
+
 
 
 console.log(cardInfoModalInfoList);
@@ -178,14 +183,16 @@ const createInfoString = (term, description) => {
 };
 
 
-const createUserPreview = (user) => {
+const createPreview = (object) => {
   const template = document.getElementById('popup-info-user-preview-template');
-  const userElement = template.content.querySelector('.popup__list-item').cloneNode(true);
+  const objectElement = template.content.querySelector('.popup__list-item').cloneNode(true);
   
-  userElement.textContent = user.name;
+  objectElement.textContent = object.name;
   
-  return userElement;
+  return objectElement;
 };
+
+
 
 const handleInfoClick = (cardId) => {
   const infoList = cardInfoModalWindow.querySelector('.popup__info');
@@ -194,6 +201,7 @@ const handleInfoClick = (cardId) => {
   
   infoList.innerHTML = '';
   userList.innerHTML = '';
+  popupTitle.textContent = 'Информация о карточке';
   
   getCardList()
     .then((cards) => {
@@ -218,7 +226,7 @@ const handleInfoClick = (cardId) => {
       textElement.textContent = "Лайкнули:";
       
       cardData.likes.forEach(user => {
-        userList.append(createUserPreview(user));
+        userList.append(createPreview(user));
       });
       
       openModalWindow(cardInfoModalWindow);
@@ -227,6 +235,50 @@ const handleInfoClick = (cardId) => {
       console.log(err);
     });
 };
+
+const handleClickOnLogo = () => {
+  const infoList = cardInfoModalWindow.querySelector('.popup__info');
+  const cardsList = cardInfoModalWindow.querySelector('.popup__list');
+  const textElement = cardInfoModalWindow.querySelector('.popup__text');
+  getCardList()
+  .then((cards) => {
+    infoList.textContent = '';
+    cardsList.textContent = '';
+    popupTitle.textContent = "Статистика карточек";
+
+    const totalLikes = cards.reduce((sum, card) => sum + card.likes.length, 0);
+    infoList.append(
+      createInfoString("Всего лайков:", totalLikes)
+    );
+
+    const uniqueUsers = new Set(cards.map(card => card.owner._id));
+    const uniqueUsersCount = uniqueUsers.size;
+    infoList.append(
+      createInfoString("Всего пользователей:", uniqueUsersCount)
+    );
+
+    const maxLikes = cards.reduce((max, card) => Math.max(max, card.likes.length), 0);
+    infoList.append(
+      createInfoString("Максимально лайков от одного:", maxLikes)
+    )
+
+    const championOfLikes = cards.find((card) => card.likes.length === maxLikes);
+    infoList.append(
+      createInfoString("Чемпион лайков:", championOfLikes.owner.name)
+    );
+
+    textElement.textContent = "Популярные карточки";
+    const top3Cards = cards.sort((a, b) => b.likes.length - a.likes.length).slice(0, 3);
+    top3Cards.forEach(card => {
+      cardsList.append(createPreview(card))
+    })
+    
+    openModalWindow(cardInfoModalWindow);
+  })
+  .catch((err) => {
+    console.log(err);
+  })
+}
 
 profileForm.addEventListener("submit", handleProfileFormSubmit);
 cardForm.addEventListener("submit", handleCardFormSubmit);
@@ -251,6 +303,10 @@ openCardFormButton.addEventListener("click", () => {
   openModalWindow(cardFormModalWindow);
 });
 
+
+logoImage.addEventListener("click", () => {
+  handleClickOnLogo();
+})
 
 const allPopups = document.querySelectorAll(".popup");
 allPopups.forEach((popup) => {
