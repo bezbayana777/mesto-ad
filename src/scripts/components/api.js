@@ -1,5 +1,5 @@
 
-import {TOKEN, ID_GROUP } from '/config.js'
+import {TOKEN, ID_GROUP } from './mesto-ad/config.js'
 
 const config = {
   baseUrl: `https://mesto.nomoreparties.co/v1/${ ID_GROUP }`,
