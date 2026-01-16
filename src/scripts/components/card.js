@@ -43,7 +43,8 @@ export const createCardElement = (
   
   likeButton.addEventListener("click", () => {
     if (onLikeIcon) {
-      onLikeIcon(data._id, likeButton, likeCountElement, isLikedByCurrentUser);
+      const isCurrentlyLiked = likeButton.classList.contains("card__like-button_is-active");
+      onLikeIcon(data._id, likeButton, likeCountElement, isCurrentlyLiked);
     }
   });
 
