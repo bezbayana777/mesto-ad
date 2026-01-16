@@ -5,4 +5,4 @@
 Live-server является расширением VSCode
 
 
-https://bezbayana777.github.io/mesto-ad/
+https://bezbayana777.github.io/mesto-production/

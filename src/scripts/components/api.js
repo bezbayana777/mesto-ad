@@ -1,10 +1,8 @@
 
-import {TOKEN, ID_GROUP } from '/config.js'
-
 const config = {
-  baseUrl: `https://mesto.nomoreparties.co/v1/${ ID_GROUP }`,
+  baseUrl: `https://mesto.nomoreparties.co/v1/apf-cohort-202`,
   headers: {
-    authorization: `${ TOKEN }`,
+    authorization: "97dc7063-4d68-4f70-bf54-83ff90e3446d",
     "Content-Type": "application/json",
   },
 };
